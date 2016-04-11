@@ -1,0 +1,50 @@
+# Macro Begin: /home/gug/.FreeCAD/importsegfish.FCMacro +++++++++++++++++++++++++++++++++++++++++++++++++
+from FreeCAD import *
+import FreeCADGui
+
+normal=FreeCAD.Vector
+tangent=FreeCAD.Vector
+
+sel=FreeCADGui.Selection.getSelectionEx()[0]
+obj=sel.Object
+subs=sel.SubObjects
+
+if len(subs)!=2:
+	Console.PrintError("Select 1 point and 1 curve\r\n")
+
+# Check container
+
+isSub0Edge=issubclass(type(subs[0]),Part.Edge)
+isSub1Edge=issubclass(type(subs[1]),Part.Edge)
+isSub0Vertex=issubclass(type(subs[0]),Part.Vertex)
+isSub1Vertex=issubclass(type(subs[1]),Part.Vertex)
+
+# Ensure the use select 1 line and 1 point in the order.
+s=subs
+if( isSub0Edge and isSub1Vertex ):
+	pass
+elif (isSub0Vertex and isSub1Edge ):
+	subs.reverse()
+else:
+	Console.PrintError( "Select 1 point and one curve, (%s,%s) currently selected \r\n" % (subs[0], subs[1]) )
+
+v=subs[0]
+p=subs[1]
+
+pp = p.Point
+vp = obj.Points
+vplen = len(vp)
+
+if( vp[0]== pp):
+	tangent=vp[1]-vp[0]
+elif( vp[vplen-1] == pp ):
+	tangent=vp[vplen-2]-pp
+else:
+	Console.PrintError( "Error while computing normal \r\n" )
+
+
+Console.PrintMessage("Set orthogonal workplane\r\n")
+FreeCAD.DraftWorkingPlane.alignToPointAndAxis(pp, tangent, 0.0)
+FreeCADGui.Snapper.setGrid()
+
+# Macro End: /home/gug/.FreeCAD/test.FCMacro +++++++++++++++++++++++++++++++++++++++++++++++++
