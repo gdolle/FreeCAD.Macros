@@ -20,7 +20,7 @@ isSub0Vertex=issubclass(type(subs[0]),Part.Vertex)
 isSub1Vertex=issubclass(type(subs[1]),Part.Vertex)
 
 # Ensure the use select 1 line and 1 point in the order.
-s=subs
+subs=list(subs)
 if( isSub0Edge and isSub1Vertex ):
 	pass
 elif (isSub0Vertex and isSub1Edge ):
@@ -28,20 +28,46 @@ elif (isSub0Vertex and isSub1Edge ):
 else:
 	Console.PrintError( "Select 1 point and one curve, (%s,%s) currently selected \r\n" % (subs[0], subs[1]) )
 
+# Sub curve point and vertex.
 v=subs[0]
 p=subs[1]
 
+vp0 = v.Vertexes[0].Point
+vp1 = v.Vertexes[1].Point
 pp = p.Point
-vp = obj.Points
-vplen = len(vp)
 
-if( vp[0]== pp):
-	tangent=vp[1]-vp[0]
-elif( vp[vplen-1] == pp ):
-	tangent=vp[vplen-2]-pp
+Console.PrintMessage("Point selected: %s \r\n" % pp )
+
+# All curve points.
+vpall = obj.Points
+
+if ((vp0 != pp) and (vp1 != pp)):
+	Console.PrintError( "The point must be part of the curve %s should be either %s or %s ) ? \r\n" % (pp, vp[0], vp[1]) )
+
+# Find the point in the curve.
+aidx=0
+bidx=0
+astop=False
+bstop=False
+for i in vpall:
+	if( i!=vp0 and not astop):
+		aidx=aidx+1
+	else:
+		astop=True
+	if( i!=vp1 and not bstop):
+		bidx=bidx+1
+	else:
+		bstop=True
+
+Console.PrintMessage("Curve selected point A id=%s Position=%s \r\n" %(aidx, vpall[aidx]))
+Console.PrintMessage("Curve selected point B id=%s Position=%s \r\n" %(bidx, vpall[bidx]))
+
+if( vpall[aidx] == pp):
+	tangent=vpall[aidx+1]-vpall[aidx]
+elif( vpall[bidx] == pp ):
+	tangent=vpall[bidx]-vpall[bidx-1]
 else:
 	Console.PrintError( "Error while computing normal \r\n" )
-
 
 Console.PrintMessage("Set orthogonal workplane\r\n")
 FreeCAD.DraftWorkingPlane.alignToPointAndAxis(pp, tangent, 0.0)
